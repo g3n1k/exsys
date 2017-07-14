@@ -1,0 +1,114 @@
+#!/bin/bash
+#
+# chkconfig: 2345 85 15
+# description: Starts and stops the PostgreSQL 9.5 database server
+
+# Source function library.
+if [ -f /etc/rc.d/functions ];
+then
+    . /etc/init.d/functions
+fi
+
+NAME=postgresql-9.5
+LOCKFILE=/var/lock/subsys/$NAME
+
+# indra sadik - 14.07.2017 07:34:00
+# change pointing data folder
+# from /opt/PostgreSQL/9.5/data to /home/pg_data
+PGDATA=/home/pg_data
+
+source /opt/PostgreSQL/9.5/etc/sysconfig/loadplLanguages.sh /opt/PostgreSQL/9.5
+
+
+
+# PostgreSQL Service script for Linux
+
+start()
+{
+	su - postgres -c "touch $PGDATA/pg_log/startup.log"
+	echo $"Starting PostgreSQL 9.5: "
+
+	echo
+	VerifyPLPaths &> $PGDATA/pg_log/startup.log
+	LoadPLPaths
+	echo
+
+	su -s /bin/sh - postgres -c "PATH=/opt/PostgreSQL/9.5/bin:$PATH_PL_LANGUAGES:$PATH LD_LIBRARY_PATH=/opt/PostgreSQL/9.5/lib:$LD_LIBRARY_PATH_PL_LANGUAGES:$LD_LIBRARY_PATH /opt/PostgreSQL/9.5/bin/pg_ctl -w start -D \"$PGDATA\" -l \"$PGDATA/pg_log/startup.log\""
+
+	if [ $? -eq 0 ];
+	then
+		touch $LOCKFILE
+		echo "PostgreSQL 9.5 started successfully"
+                exit 0
+	else
+		echo "PostgreSQL 9.5 did not start in a timely fashion, please see $PGDATA/pg_log/startup.log for details"
+                exit 1
+	fi
+}
+
+stop()
+{
+	echo $"Stopping PostgreSQL 9.5: "
+	su -s /bin/sh - postgres -c "LD_LIBRARY_PATH=/opt/PostgreSQL/9.5/lib:$LD_LIBRARY_PATH /opt/PostgreSQL/9.5/bin/pg_ctl stop -m fast -w -D \"$PGDATA\""
+	if [ $? -eq 0 ];
+	then
+		rm -f $LOCKFILE
+	fi
+}
+
+restart()
+{
+	su - postgres -c "touch $PGDATA/pg_log/startup.log"
+	echo $"Restarting PostgreSQL 9.5: "
+
+        echo
+        VerifyPLPaths &> /opt/PostgreSQL/9.5/data/pg_log/startup.log
+        LoadPLPaths
+        echo
+
+	su -s /bin/sh - postgres -c "PATH=/opt/PostgreSQL/9.5/bin:$PATH_PL_LANGUAGES:$PATH LD_LIBRARY_PATH=/opt/PostgreSQL/9.5/lib:$LD_LIBRARY_PATH_PL_LANGUAGES:$LD_LIBRARY_PATH /opt/PostgreSQL/9.5/bin/pg_ctl -w restart -D \"$PGDATA\" -l \"$PGDATA/pg_log/startup.log\" -m fast"
+	
+	if [ $? -eq 0 ];
+	then
+		touch $LOCKFILE
+		echo "PostgreSQL 9.5 restarted successfully"
+                exit 0
+	else
+		echo "PostgreSQL 9.5 did not start in a timely fashion, please see $PGDATA/pg_log/startup.log for details"
+                exit 1
+	fi
+}
+
+reload()
+{
+	echo $"Reloading PostgreSQL 9.5: "
+	su -s /bin/sh - postgres -c "LD_LIBRARY_PATH=/opt/PostgreSQL/9.5/lib:$LD_LIBRARY_PATH /opt/PostgreSQL/9.5/bin/pg_ctl reload -D \"$PGDATA\""
+}
+
+# See how we were called.
+case "$1" in
+  start)
+        start
+        ;;
+  stop)
+        stop
+        ;;
+  restart)
+        restart
+        ;;
+  reload)
+	reload
+	;;
+  condrestart)
+        if [ -f "$PGDATA/postmaster.pid" ]; then
+            restart
+        fi
+        ;;
+  status)
+        su -s /bin/sh - postgres -c "LD_LIBRARY_PATH=/opt/PostgreSQL/9.5/lib:$LD_LIBRARY_PATH /opt/PostgreSQL/9.5/bin/pg_ctl status -D \"$PGDATA\""
+        ;;
+  *)
+        echo $"Usage: /opt/PostgreSQL/9.5/installer/server/startupcfg.sh {start|stop|restart|condrestart|status}"
+        exit 1
+esac
+
