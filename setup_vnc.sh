@@ -1,6 +1,6 @@
 #!/bin/bash
 read -p 'User: ' vnc_user
-read -p 'Port: ' vnc_port
+read -p 'Port [ex 1, 2, or 3 ...] : ' vnc_port
 
 # create config file
 touch tmp.file
