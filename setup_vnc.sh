@@ -13,7 +13,6 @@ echo "After=syslog.target network.target"  >> tmp.file
 echo "[Service]" >> tmp.file
 echo "Type=forking" >> tmp.file
 echo "ExecStartPre=/bin/sh -c '/usr/bin/vncserver -kill %i > /dev/null 2>&1 || :'" >> tmp.file
-echo "ExecStart=/sbin/runuser -l exsys -c \"/usr/bin/vncserver %i\"" >> tmp.file
 echo "PIDFile=/home/$vnc_user/.vnc/%H%i.pid" >> tmp.file
 echo "ExecStop=/bin/sh -c '/usr/bin/vncserver -kill %i > /dev/null 2>&1 || :'" >> tmp.file
 
