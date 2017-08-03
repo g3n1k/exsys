@@ -31,3 +31,8 @@ systemctl daemon-reload
 systemctl enable vncserver@:$vnc_port.service
 systemctl start vncserver@:$vnc_port.service
 
+# dont forget to open port
+# nano /etc/sysconfig/iptables -c
+# add the line
+# -A INPUT -p tcp -m state --state NEW -m tcp --dport 590$vnc_port -j ACCEPT
+# service iptables restart
