@@ -12,7 +12,8 @@ echo "Type=forking" >> tmp.file
 echo "ExecStartPre=/bin/sh -c '/usr/bin/vncserver -kill %i > /dev/null 2>&1 || :'" >> tmp.file
 echo "ExecStart=/sbin/runuser -l $vnc_user -c \"/usr/bin/vncserver %i\"" >> tmp.file
 
-if [$vnc_user = 'root'] then
+if [$vnc_user -eq 'root'] 
+then
   echo "PIDFile=/home/$vnc_user/.vnc/%H%i.pid" >> tmp.file
 else 
   echo "PIDFile=/$vnc_user/.vnc/%H%i.pid" >> tmp.file
